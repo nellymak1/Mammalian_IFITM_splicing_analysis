@@ -4,9 +4,6 @@ library(dplyr)
 library(ggplot2)
 library(svglite)
 
-# set working directory
-setwd("~/OneDrive - University of Edinburgh/EDINBURGH PHD/IFITM PROJECT/Bioinformatics/Splicing Analysis/IFITMs_in_mammals_tblastn")
-
 transcript_count <- read_excel("IFITM_gene_count_by_species.xlsx")
 
 # Make a list of species names from blast results to make timetree
