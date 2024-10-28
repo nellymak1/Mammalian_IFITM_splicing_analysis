@@ -1,0 +1,6 @@
+install.packages("ggtree")
+install.packages("readxl")
+install.packages("dpylr")
+install.packages("ggplot2")
+install.packages("svglite")
+install.packages("treeio")

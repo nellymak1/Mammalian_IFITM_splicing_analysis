@@ -4,28 +4,20 @@ library(dplyr)
 library(ggplot2)
 library(svglite)
 
+#### data cleaning ####
 transcript_count <- read_excel("IFITM_gene_count_by_species.xlsx")
 
-# Make a list of species names from blast results to make timetree
-# species <- head(transcript_count$Species, n=205)
-# writeLines(species,con = "species_name.txt")
+# Make a list of species names from blast results to make phylogentic tree
+species <- head(transcript_count$Species, n=206)
+writeLines(species,con = "species_name.txt")
 
-# Make time tree on timetree.org but some species are unresolved
-# substitutions cannot be found for Eptesicus fuscus, Bos indicus x Bos taurus,
-# Rattus rattus, Neophocaena asiaeorientalis asiaorientalis
-# Removed Canis lupus familiaris from list since it masks Canis lupus dingo
-
-#Load tree
-tree <- read.tree("timetree_mammals.nwk")
-
-# Remove _ in tip label names
-tree$tip.label <- gsub("_", " ", tree$tip.label) #remove _ in tip label name
-tree$tip.label <- gsub("Canis lupus dingo", "Canis lupus familiaris", tree$tip.label)
+# ACTION: use NCBI taxonomy browser to make phylip tree
+# ACTION: https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi
+tree <- read.tree("phyliptree_206mammals.phy")
+tree$tip.label <- gsub("'","",tree$tip.label)
 
 # rearrange transcript_count dataframe to match order of tree tip labels
-# might not be necessary to rearrange
-# need to make a dataframe with column 1 being tip label 
-# and other columns being other variables
+# need to make a dataframe with column 1 being tip label and other columns being other variables
 d1 <- data.frame(node=tree$tip.label)
 order_d1 <- match(d1$node, transcript_count$Species)
 transcript_count_reordered <- transcript_count[order_d1, ]
@@ -46,34 +38,22 @@ d1 <- data.frame(node=tree$tip.label,
                  total_genes=total_genes, 
                  splicing_outcome=splicing_outcome,
                  Nterm_variation=Nterm_variation)
+#### end of data cleaning ####
 
-# plot tree
+#### Tree plotting ####
 library(phylobase)
 tree_data <- phylo4d(tree, d1) #integrate tree and dataframe
-p <- ggtree(tree_data, layout="circular", size=0.2) 
-q <- ggtree(tree_data, size=0.2) 
+p <- ggtree(tree_data, layout="radial", size=0.1, branch.length = "none") 
+q <- ggtree(tree_data, size=0.2, branch.length = "none") 
+ggtree(tree_data)
 
-# upright tree
-
-# plot total_genes by colour as continuous scale
-# p + geom_tippoint(size=0.5, aes(color=splicing))
-# q + geom_tippoint(size=0.5, aes(color=total_genes)) + 
-#  scale_color_gradientn(colors=rev(rainbow(5)), breaks=seq(0,30,by=5))
-# q + geom_tippoint(size=0.5, aes(color=total_genes)) + 
-#  scale_color_gradient(low="blue", high="red", breaks=seq(0,30,by=5))
-
+## upright tree 
 q_points <- q + geom_tippoint(size=0.5, aes(color=total_genes)) + 
   scale_color_gradientn(colors=terrain.colors(5), breaks=seq(0,30,by=5)) + 
   labs(color = "Number of \nIFITM genes") +
   theme(legend.position = c(0.2,0.7), legend.title = element_text(size=8, face ="bold"),
         legend.text = element_text(size=8))
 q_points
-  
-# Can also plot total_genes by colour as discrete variable
-# hcl.pals()
-# hcl.colors(5, palette="Fall")
-# q + geom_tippoint(size=0.5, aes(color=total_genes)) + 
-#  scale_color_stepsn(colors=hcl.colors(6, palette="Fall"), breaks=seq(0,30,by=5))
 
 # colour tip labels by whether there are splicing
 q_labels <- q + xlim(0,230) +
@@ -88,24 +68,13 @@ q_labels <- q + xlim(0,230) +
   guides(color = guide_legend(override.aes = list(label="\u25A0",size=3)))
 q_labels
 
-q_points + q_labels
-
-#ggsave("tree_tiplabels.svg", plot = q_labels, device = "svg")
-#ggsave("tree_tippoints.svg", plot = q_points, device = "svg")
+ggsave("tree_tiplabels.svg", plot = q_labels, device = "svg")
+ggsave("tree_tippoints.svg", plot = q_points, device = "svg")
 
 
-# circular tree
-
-p <- ggtree(tree_data, layout="circular", size=0.2)  
-
-#p_points <- p + geom_tippoint(size=0.8, aes(color=total_genes)) + 
-  scale_color_gradientn(colors=terrain.colors(8), breaks=c(1,3,5,10,20), trans="log10") + 
-  labs(color = "Number of \nIFITM genes") +
-  theme(legend.title = element_text(size=8, face ="bold"),
-        legend.text = element_text(size=8))
-
-
-p_points <- p + geom_tippoint(size=0.5, aes(color=total_genes)) + 
+## circular tree
+p_points <- p + xlim(0,5) + 
+  geom_tippoint(size=0.5, aes(color=total_genes)) + 
   labs(color = "Number of IFITM genes") +
   theme(legend.title = element_text(size=8, face ="bold"),
         legend.text = element_text(size=8),
@@ -115,9 +84,9 @@ p_points <- p + geom_tippoint(size=0.5, aes(color=total_genes)) +
                      breaks=c(1,2,5,10,20), trans="log10")
 p_points
 
-p_labels <- p + xlim(0,230) +
-  geom_tiplab(aes(color=splicing_outcome), size=1.5, 
-              align = TRUE, offset = 2, linesize = 0) +
+p_labels <- p + xlim(0,5) +
+  geom_tiplab(aes(color=splicing_outcome), size=1.7, 
+              align = TRUE, offset = 0.05, linesize = 0) +
   scale_color_manual(values = c("indianred3", "royalblue"), na.value = "black",
                      labels = c("Non-synonymous", "Synonymous","None")) +
   labs(color = "IFITM splice variants") +
@@ -127,12 +96,12 @@ p_labels <- p + xlim(0,230) +
   guides(color = guide_legend(override.aes = list(label="\u25A0",size=5)))
 p_labels
 
-p_labels + geom_text(aes(label=Nterm_variation), color="black")
+p_asterisks <- p_labels + geom_text(aes(label=Nterm_variation), color="black")
 
 
-#ggsave("circular_tippoints.svg", plot = p_points, device = "svg")
-#ggsave("circular_tiplabels.svg", plot = p_labels, device = "svg")
-
+ggsave("circular_tippoints.svg", plot = p_points, device = "svg")
+ggsave("circular_tiplabels.svg", plot = p_labels, device = "svg")
+ggsave("circular_asterisks.svg", plot = p_asterisks, device = "svg")
 
 ####################################################################
 
@@ -141,14 +110,13 @@ p_labels + geom_text(aes(label=Nterm_variation), color="black")
 library(treeio)
 
 q_labels + geom_text(aes(label=node), size=1, hjust=.2, color="red")
-#ggsave("tree_nodes.svg", device = "svg") 
-# chiroptera common ancestor = node 295
+# ggsave("tree_nodes.svg", device = "svg") 
+# chiroptera common ancestor = node 264
 
-tree_bats <- tree_subset(tree, node = 295, levels_back = 0)
-#ggtree(tree_bats)
+tree_bats <- tree_subset(tree, node = 264, levels_back = 0)
+ggtree(tree_bats)
 
 # rearrange transcript_count dataframe to match order of tree tip labels
-# might not be necessary to rearrange
 # need to make a dataframe with column 1 being tip label 
 # and other columns being other variables
 
@@ -173,20 +141,8 @@ d2 <- data.frame(node=tree_bats$tip.label,
 #integrate tree and dataframe
 tree_data_bats <- phylo4d(tree_bats, d2) 
 
-q_bats <- ggtree(tree_data_bats)
-q_bats_points <- q_bats + xlim(0,100) +
-  geom_tippoint(size=3, aes(color=total_genes)) +
-  labs(color = "Number of IFITM genes") +
-  theme(legend.title = element_text(size=8, face ="bold"),
-        legend.text = element_text(size=8),
-        legend.direction = "horizontal")  +
-        guides(colour = guide_colourbar(title.position="top", title.hjust = 0.5)) +
-  scale_color_gradientn(colors=terrain.colors(20), breaks=c(1,5,10,15))
-q_bats_points
-
-# discrete scale bar for tip colours
-q_bats + 
-  xlim(0,200) +
+q_bats_points <- q_bats + 
+  xlim(0,12) +
   geom_tippoint(size=3, aes(fill=total_genes), pch=21, color="black") +
   labs(fill = "Number of IFITM genes") +
   theme(legend.title = element_text(size=8, face ="bold"),
@@ -196,12 +152,10 @@ q_bats +
  scale_fill_stepsn(#colors=c("black","#A27CA1","#FFD6FE","white"),
                     colors=c("ivory1","rosybrown1","indianred1","indianred4"),
                     breaks=c(1,2,5,10), trans="log10")
- 
-ggsave("tree_bats_tippoints_discrete.svg", device = "svg")
 
 q_bats + theme_tree2()
 
-q_bats_labels <- q_bats + xlim(0,100) +
+q_bats_labels <- q_bats + xlim(0,12) +
   geom_tiplab(aes(color=splicing_outcome), size=3, 
               align = TRUE, offset = 2, linesize = 0) +
   scale_color_manual(values = c("indianred3", "royalblue4"), na.value = "black",
@@ -213,6 +167,5 @@ q_bats_labels <- q_bats + xlim(0,100) +
   guides(color = guide_legend(override.aes = list(label="\u25A0",size=5)))
 q_bats_labels
 
-#ggsave("tree_bats_tiplabels.svg", plot = q_bats_labels, device = "svg")
-#ggsave("tree_bats_tippoints.svg", plot = q_bats_points, device = "svg")
-
+ggsave("tree_bats_tiplabels.svg", plot = q_bats_labels, device = "svg")
+ggsave("tree_bats_tippoints.svg", plot = q_bats_points, device = "svg")
