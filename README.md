@@ -1,7 +1,7 @@
-# Mammalian_IFITM_splicing_analysis
+# Mammalian_IFITM_splicing_analysis :paw_prints:
 This repository contains bash and R scripts for the IFITM splicing analysis in the following [preprint](https://www.biorxiv.org/content/10.1101/2023.12.04.569605v1.full):
 
-Alternative splicing expands the antiviral IFITM repertoire in Chinese horseshoe bats
+:bat: Alternative splicing expands the antiviral IFITM repertoire in Chinese horseshoe bats
 Nelly Mak, Dan Zhang, Xiaomeng Li, Kazi Rahman, Siddhartha A.K. Datta, Jordan Taylor, Jingyan Liu, Zhengli Shi, Nigel Temperton, Aaron T. Irving, Alex A. Compton, Richard D. Sloan
 bioRxiv 2023.12.04.569605; doi: https://doi.org/10.1101/2023.12.04.569605
 
@@ -16,17 +16,17 @@ Parts 1-2 are written as a generic bash script and can be adapted to search for 
 
 Parts 3-4 are written in R (version 4.2.3) for the specific analysis of mammalian IFITM genes, with data acquired from the first two steps.
 
-## Part 1: tBLASTn search
+## Part 1: tBLASTn search :mag:
 - Use the `IFITM_tBLASTn` folder
 - Follow `install-packages.sh` to download dependencies and setup your local environment (bash)
 - Run the interactive script `tblastn.sh`
 
-## Part 2: Gene transcript information retrieval
+## Part 2: Gene transcript information retrieval :dna:
 - Use the `Retrieve_gene_information` folder
 - Follow `install-packages.sh` to download dependencies and setup your local environment (bash)
 - Run the interactive script `datasets_get_reports.sh`
 
-## Part 3: Alternative splicing analysis
+## Part 3: Alternative splicing analysis :scissors:
 - Use the `Splicing_analysis` folder
 - Run `install-packages.R` to install required packages
 - Run `IFITM_blast_report_analysis.R`
@@ -34,7 +34,7 @@ Parts 3-4 are written in R (version 4.2.3) for the specific analysis of mammalia
 The script analyses the file `blast_hIFITM3_against_mammals_tblastn_REPORT.xlsx` that is the output of part 2. 
 To analyse a different file simply change the file name in line 5 of the script and make sure the file in in the working directory.
 
-## Part 4: Plotting
+## Part 4: Plotting :chart_with_upwards_trend:
 - Use the `Splicing_tree_plotting` folder
 - Run `install-packages.R` to install required packages
 - Run `Tree_construction.R`
